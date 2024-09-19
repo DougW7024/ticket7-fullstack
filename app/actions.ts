@@ -40,7 +40,14 @@ export async function addTask(newTask: TaskType) {
 
 export async function updateTask(taskId: number, updatedTask: TaskType) {
   try {
-    const response = await client.patch(`${taskId}`, updatedTask);
+    // Format the dueDate to ISO-8601
+    const formattedTask = {
+      ...updatedTask,
+      dueDate: updatedTask.dueDate
+        ? new Date(updatedTask.dueDate).toISOString()
+        : null,
+    };
+    const response = await client.patch(`${taskId}`, formattedTask);
     return response.data;
   } catch (error) {
     console.error(`Failed to update task with ID: ${taskId}`, error);
@@ -48,11 +55,20 @@ export async function updateTask(taskId: number, updatedTask: TaskType) {
   }
 }
 
-export async function deleteTask(taskId: number) {
-  try {
-    const response = await client.delete(`${taskId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error(`Failed to delete task with ID: ${taskId}`);
+export async function deleteTask(
+  taskId: number
+): Promise<{ data: any; confirmed: boolean } | null> {
+  const isConfirmed = window.confirm(
+    "Are you sure you want to delete this task?"
+  );
+  if (isConfirmed) {
+    try {
+      const response = await client.delete(`${taskId}`);
+      return { data: response.data, confirmed: true };
+    } catch (error) {
+      throw new Error(`Failed to delete task with ID: ${taskId}`);
+    }
+  } else {
+    return { data: null, confirmed: false };
   }
 }

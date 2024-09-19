@@ -8,6 +8,7 @@ import { FaRegFolderOpen } from "react-icons/fa";
 import { TfiNewWindow } from "react-icons/tfi";
 import { BsQuestionDiamond } from "react-icons/bs";
 import { MdOutlineOpenWith, MdOutlineLibraryAdd } from "react-icons/md";
+import { useRouter } from "next/navigation";
 
 interface TaskGridProps {
   tasks: TaskType[];
@@ -22,6 +23,7 @@ export default function TaskGrid({ tasks }: TaskGridProps) {
   const [pageTitle, setPageTitle] = useState("Your Tasks");
   const [filteredTasks, setFilteredTasks] = useState(tasks);
   const [sortByDueDate, setSortByDueDate] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   //imbedded TailwindCSS styles:
   const navbtnStyle =
@@ -29,7 +31,11 @@ export default function TaskGrid({ tasks }: TaskGridProps) {
   const addbtnStyle =
     "flex cursor-pointer rounded-lg border-2 transition duration-300 ease-in-out border-slate-500 p-2 hover:text-white hover:bg-black hover:border-slate-300";
   const miscbtnStyle =
-    "border-2 border-orange-800 p-2 hover:text-white hover:bg-black hover:border-orange-600 text-white font-bold italic hover:not-italic py-1 px-2 rounded-full";
+    "border-2 border-orange-800 p-2 flex hover:text-white hover:bg-black hover:border-orange-600 text-white font-bold italic hover:not-italic py-1 px-2 rounded-full";
+
+  const router = useRouter();
+  // router.push("/");
+  // router.refresh();
 
   useEffect(() => {
     setFilteredTasks(tasks);
@@ -54,6 +60,13 @@ export default function TaskGrid({ tasks }: TaskGridProps) {
     setPageTitle("Your Completed Tasks");
     setFilteredTasks(tasks.filter((task) => task.taskStatus === "COMPLETED"));
   };
+
+  function handleDeleteConfirm() {
+    if (isConfirmed) {
+      router.push("/");
+      router.refresh();
+    }
+  }
 
   const handleSortByDueDate = () => {
     setSortByDueDate(!sortByDueDate);
@@ -174,7 +187,7 @@ export default function TaskGrid({ tasks }: TaskGridProps) {
                   </p>
                 </div>
 
-                <div className="mt-4 flex justify-between border-slate-300">
+                <div className="mt-4 flex px-3 justify-between border-slate-300">
                   <Link href={`http://localhost:3000/tasks/${task.id}/edit`}>
                     <button
                       className={miscbtnStyle}
@@ -183,12 +196,6 @@ export default function TaskGrid({ tasks }: TaskGridProps) {
                       Edit
                     </button>
                   </Link>
-                  <button
-                    className={miscbtnStyle}
-                    onClick={() => deleteTask(task.id)}
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             ))}

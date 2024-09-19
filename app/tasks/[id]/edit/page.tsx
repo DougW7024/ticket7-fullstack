@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Status } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { updateTask, getTaskById } from "@/app/actions";
+import { updateTask, getTaskById, deleteTask } from "@/app/actions";
 
 function EditTaskPage({ params }: { params: { id: number } }) {
   const router = useRouter();
@@ -12,6 +12,7 @@ function EditTaskPage({ params }: { params: { id: number } }) {
   const [errors, setErrors] = useState<string[]>([]);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   // State for task fields
   const [title, setTitle] = useState("");
@@ -25,9 +26,11 @@ function EditTaskPage({ params }: { params: { id: number } }) {
   const inputStyle2 =
     "w-full h-28 px-4 py-2 text-gray-900 bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-400";
   const btnStyle1 =
-    "px-6 py-3 bg-cyan-400 hover:bg-cyan-500 text-gray-900 font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400";
+    "px-6 py-3 flex bg-cyan-400 hover:bg-cyan-500 text-gray-900 font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400";
   const btnStyle2 =
-    "px-6 py-3 bg-red-400 hover:bg-red-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400";
+    "px-6 py-3 flex bg-red-400 hover:bg-red-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400";
+  const btnStyle3 =
+    "px-6 py-3 flex bg-red-700 hover:bg-red-800 text-xl italic text-white font-bold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-black";
 
   const taskId = params.id;
 
@@ -68,6 +71,17 @@ function EditTaskPage({ params }: { params: { id: number } }) {
       setErrors([`Failed to update task: ${error}`]);
     } finally {
       setLoading(false);
+      router.push("/");
+      router.refresh();
+    }
+  }
+
+  async function handleDelete() {
+    const result = await deleteTask(taskId);
+    if (result?.confirmed ?? false) {
+      setIsConfirmed(true);
+      router.push("/");
+      router.refresh();
     }
   }
 
@@ -84,14 +98,6 @@ function EditTaskPage({ params }: { params: { id: number } }) {
         <h1 className="text-4xl font-bold text-center mb-4 text-cyan-400 animate-pulse">
           Edit Task
         </h1>
-
-        {errors.length > 0 && (
-          <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
-            {errors.map((error, index) => (
-              <p key={index}>{error}</p>
-            ))}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -164,17 +170,27 @@ function EditTaskPage({ params }: { params: { id: number } }) {
           </div>
 
           <div className="flex justify-between items-center">
-            {/* Submit Button */}
-            <button type="submit" className={btnStyle1}>
+            <button type="submit" onClick={handleSubmit} className={btnStyle1}>
               {loading ? "Submitting..." : "Submit Task"}
             </button>
 
-            {/* Cancel Button */}
+            <button type="button" className={btnStyle3} onClick={handleDelete}>
+              Delete
+            </button>
+
             <button type="button" onClick={handleCancel} className={btnStyle2}>
               Cancel
             </button>
           </div>
         </form>
+
+        {errors.length > 0 && (
+          <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
+            {errors.map((error, index) => (
+              <p key={index}>{error}</p>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
