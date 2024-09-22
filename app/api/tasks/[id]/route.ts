@@ -9,7 +9,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: number } }
 ) {
-  if (isNaN(params.id)) {
+  const id = params.id;
+
+  if (isNaN(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
   const updatedTask = await prisma.task.findUnique({
@@ -25,19 +27,30 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: number } }
 ) {
-  if (isNaN(params.id)) {
+  const id = params.id;
+
+  if (isNaN(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
+
   const task = await prisma.task.findUnique({
     where: { id: Number(params.id) },
   });
   if (!task) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
-  const deleteTask = await prisma.task.delete({
-    where: { id: Number(params.id) },
-  });
-  return NextResponse.json(deleteTask);
+
+  try {
+    const deleteTask = await prisma.task.delete({
+      where: { id: Number(params.id) },
+    });
+    return NextResponse.json(deleteTask);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to delete task" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(

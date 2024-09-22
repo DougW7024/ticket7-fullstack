@@ -6,15 +6,16 @@ import { addTask } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
 function NewTaskPage({ params }: { params: { id: number } }) {
-  const [title, setTitle] = useState("");
-  const [taskStatus, setStatus] = useState("OPEN");
-  const [dueDate, setDueDate] = useState("");
-  const [description, setDescription] = useState("");
-  const [errors, setErrors] = useState([]);
-  const [success, setSuccess] = useState(false);
-
   const router = useRouter();
   const allStats = Object.keys(Status);
+
+  // State for task fields
+  const [formData, setFormData] = useState({
+    title: "",
+    taskStatus: "OPEN",
+    dueDate: "",
+    description: "",
+  });
 
   //imbedded TailwindCSS styles:
   const inputStyle1 =
@@ -25,27 +26,36 @@ function NewTaskPage({ params }: { params: { id: number } }) {
     "px-6 py-3 flex bg-cyan-400 hover:bg-cyan-500 text-gray-900 font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400";
   const btnStyle2 =
     "px-6 py-3 flex bg-red-400 hover:bg-red-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400";
-  
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    const formData = {
-      id: params.id,
-      title,
-      taskStatus,
-      dueDate,
-      description,
-    };
-    const newTask = await addTask(formData);
+    setFormData({
+      title: formData.title,
+      taskStatus: formData.taskStatus,
+      dueDate: formData.dueDate,
+      description: formData.description,
+    });
+    const newTask = await addTask({ ...formData, id: params.id });
     router.push("/");
     router.refresh();
   }
 
   function handleCancel() {
-    setTitle("");
-    setStatus("");
-    setDueDate("");
-    setDescription("");
+    setFormData({
+      title: "",
+      taskStatus: "",
+      dueDate: "",
+      description: "",
+    });
     router.push("/");
   }
 
@@ -67,11 +77,11 @@ function NewTaskPage({ params }: { params: { id: number } }) {
               Task Title
             </label>
             <input
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleChange}
               type="text"
               id="title"
               name="title"
-              value={title}
+              value={formData.title}
               className={inputStyle1}
               placeholder="Enter your task title"
             />
@@ -82,10 +92,10 @@ function NewTaskPage({ params }: { params: { id: number } }) {
               Status
             </label>
             <select
-              onChange={(e) => setStatus(e.target.value)}
-              id="status"
-              name="status"
-              value={taskStatus}
+              onChange={handleChange}
+              id="taskStatus"
+              name="taskStatus"
+              value={formData.taskStatus}
               className={inputStyle1}
             >
               {allStats.map((stat) => (
@@ -101,11 +111,11 @@ function NewTaskPage({ params }: { params: { id: number } }) {
               Due Date
             </label>
             <input
-              onChange={(e) => setDueDate(e.target.value)}
+              onChange={handleChange}
               type="date"
               id="dueDate"
               name="dueDate"
-              value={dueDate}
+              value={formData.dueDate}
               className={inputStyle1}
             />
           </div>
@@ -118,10 +128,10 @@ function NewTaskPage({ params }: { params: { id: number } }) {
               Description
             </label>
             <textarea
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleChange}
               id="description"
               name="description"
-              value={description}
+              value={formData.description}
               className={inputStyle2}
               placeholder="Enter a description for your task"
             ></textarea>
